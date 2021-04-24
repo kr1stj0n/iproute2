@@ -3,8 +3,8 @@
 # Copyright 2016 Quentin Monnet <quentin.monnet@6wind.com>
 
 QDISC_KIND=' choke codel bfifo pfifo pfifo_head_drop fq fq_codel gred hhf \
-            mqprio multiq netem pfifo_fast pie red rr sfb sfq tbf atm cbq drr \
-            dsmark hfsc htb prio qfq '
+            mqprio multiq netem pfifo_fast pie shq red rr sfb sfq tbf atm \
+            cbq drr dsmark hfsc htb prio qfq '
 FILTER_KIND=' basic bpf cgroup flow flower fw route rsvp tcindex u32 matchall '
 ACTION_KIND=' gact mirred bpf sample '
 
@@ -322,6 +322,11 @@ _tc_qdisc_options()
         pie)
             _tc_once_attr 'limit target tupdate alpha beta'
             _tc_one_of_list 'bytemode nobytemode'
+            _tc_one_of_list 'ecn noecn'
+            return 0
+            ;;
+        shq)
+            _tc_once_attr 'limit interval maxp alpha bandwidth'
             _tc_one_of_list 'ecn noecn'
             return 0
             ;;

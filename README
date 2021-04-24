@@ -40,6 +40,18 @@ on the system such as: ATM, ELF, MNL, and SELINUX.
    if you have special requirements and need to point at different
    kernel include files.
 
+5. libcap-dev
+
+6. pkg-config
+
+7. libmnl-dev
+
+8. libelf-dev
+
+9. bison
+
+10.flex
+
 Stephen Hemminger
 stephen@networkplumber.org
 
