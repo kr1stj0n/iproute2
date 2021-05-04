@@ -209,7 +209,7 @@ static int shq_print_xstats(struct qdisc_util *qu, FILE *f,
 	print_float(PRINT_ANY, "prob", "  prob %lg",
                     (double)st->prob / pow(2, SHQ_SCALE));
 
-	fprintf(f, " delay %llu us ", (unsigned long long) st->qdelay);
+	fprintf(f, " delay %lluus ", (unsigned long long) st->qdelay);
 
 	if (st->avg_rate)
                 print_uint(PRINT_ANY, "avg_rate", " avg_rate %u", st->avg_rate);
