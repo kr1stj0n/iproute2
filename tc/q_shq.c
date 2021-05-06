@@ -44,7 +44,7 @@ static int shq_parse_opt(struct qdisc_util *qu, int argc, char **argv,
 {
 	unsigned int limit     = 1000;          /* default: 1000p */
 	unsigned int interval  = 10000;         /* default 10ms in usecs */
-        double       maxp      = 0.02;
+        double       maxp      = 1.0;
         double       alpha     = 0.25;
         unsigned int bandwidth = 12500000;      /* default 100mbit in bps */
 	int          ecn       = 1;             /* enable ecn by default */
@@ -206,7 +206,7 @@ static int shq_print_xstats(struct qdisc_util *qu, FILE *f,
 
 	st = RTA_DATA(xstats);
 
-	print_float(PRINT_ANY, "prob", "  prob %lg",
+	print_float(PRINT_ANY, "prob", "  probability %lg",
                     (double)st->prob / pow(2, SHQ_SCALE));
 
 	fprintf(f, " delay %lluus ", (unsigned long long) st->qdelay);
