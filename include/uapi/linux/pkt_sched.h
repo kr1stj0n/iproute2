@@ -986,7 +986,7 @@ struct tc_shq_xstats {
 	__u32 packets_in;	/* total number of packets enqueued */
 	__u32 dropped;		/* packets dropped due to shq_action */
 	__u32 overlimit;	/* dropped due to full queue */
-	__u32 maxq;		/* maximum queue size */
+	__u16 maxq;		/* maximum queue size */
 	__u32 ecn_mark;		/* packets marked with ecn*/
 };
 
