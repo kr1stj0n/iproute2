@@ -29,7 +29,7 @@
 #include "utils.h"
 #include "tc_util.h"
 
-#define SHQ_SCALE 16
+#define SHQ_SCALE 32
 
 static void explain(void)
 {
@@ -48,7 +48,7 @@ static int shq_parse_opt(struct qdisc_util *qu, int argc, char **argv,
         double       alpha     = 0.25;
         unsigned int bandwidth = 12500000;      /* default 100mbit in bps */
 	int          ecn       = 1;             /* enable ecn by default */
-        __u32        maxp_scaled;
+        __u64        maxp_scaled;
         __u32        alpha_scaled;
 	struct rtattr *tail;
 
@@ -140,7 +140,7 @@ static int shq_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 	struct rtattr *tb[TCA_SHQ_MAX + 1];
 	unsigned int limit;
 	unsigned int interval;
-	unsigned int maxp;
+	unsigned long long maxp;
 	unsigned int alpha;
 	unsigned int bandwidth;
 	unsigned int ecn;
@@ -165,8 +165,8 @@ static int shq_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
                              sprint_time(interval, b1));
 	}
 	if (tb[TCA_SHQ_MAXP] &&
-            RTA_PAYLOAD(tb[TCA_SHQ_MAXP]) >= sizeof(__u32)) {
-		maxp = rta_getattr_u32(tb[TCA_SHQ_MAXP]);
+            RTA_PAYLOAD(tb[TCA_SHQ_MAXP]) >= sizeof(__u64)) {
+		maxp = rta_getattr_u64(tb[TCA_SHQ_MAXP]);
 		if (maxp)
                         print_float(PRINT_ANY, "maxp", "maxp %lg ",
                                     maxp / pow(2, SHQ_SCALE));
