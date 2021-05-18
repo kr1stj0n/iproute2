@@ -29,7 +29,8 @@
 #include "utils.h"
 #include "tc_util.h"
 
-#define SHQ_SCALE 32
+#define SHQ_SCALE_16 16
+#define SHQ_SCALE_32 32
 
 static void explain(void)
 {
@@ -48,7 +49,7 @@ static int shq_parse_opt(struct qdisc_util *qu, int argc, char **argv,
         double       alpha     = 0.25;
         unsigned int bandwidth = 12500000;      /* default 100mbit in bps */
 	int          ecn       = 1;             /* enable ecn by default */
-        __u64        maxp_scaled;
+        __u32        maxp_scaled;
         __u32        alpha_scaled;
 	struct rtattr *tail;
 
@@ -112,12 +113,12 @@ static int shq_parse_opt(struct qdisc_util *qu, int argc, char **argv,
 		addattr_l(n, 1024, TCA_SHQ_INTERVAL, &interval,
                           sizeof(interval));
 	if (maxp) {
-                maxp_scaled = maxp * pow(2, SHQ_SCALE);
+                maxp_scaled = maxp * pow(2, SHQ_SCALE_16);
                 addattr_l(n, 1024, TCA_SHQ_MAXP, &maxp_scaled,
                           sizeof(maxp_scaled));
         }
 	if (alpha) {
-                alpha_scaled = alpha * pow(2, SHQ_SCALE);
+                alpha_scaled = alpha * pow(2, SHQ_SCALE_16);
 		addattr_l(n, 1024, TCA_SHQ_ALPHA, &alpha_scaled,
                           sizeof(alpha_scaled));
         }
@@ -140,7 +141,7 @@ static int shq_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 	struct rtattr *tb[TCA_SHQ_MAX + 1];
 	unsigned int limit;
 	unsigned int interval;
-	unsigned long long maxp;
+	unsigned int maxp;
 	unsigned int alpha;
 	unsigned int bandwidth;
 	unsigned int ecn;
@@ -165,11 +166,11 @@ static int shq_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
                              sprint_time(interval, b1));
 	}
 	if (tb[TCA_SHQ_MAXP] &&
-            RTA_PAYLOAD(tb[TCA_SHQ_MAXP]) >= sizeof(__u64)) {
-		maxp = rta_getattr_u64(tb[TCA_SHQ_MAXP]);
+            RTA_PAYLOAD(tb[TCA_SHQ_MAXP]) >= sizeof(__u32)) {
+		maxp = rta_getattr_u32(tb[TCA_SHQ_MAXP]);
 		if (maxp)
                         print_float(PRINT_ANY, "maxp", "maxp %lg ",
-                                    maxp / pow(2, SHQ_SCALE));
+                                    maxp / pow(2, SHQ_SCALE_16));
 
 	}
 	if (tb[TCA_SHQ_ALPHA] &&
@@ -177,7 +178,7 @@ static int shq_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 		alpha = rta_getattr_u32(tb[TCA_SHQ_ALPHA]);
 		if (alpha)
                         print_float(PRINT_ANY, "alpha", "alpha %lg ",
-                                    alpha / pow(2, SHQ_SCALE));
+                                    alpha / pow(2, SHQ_SCALE_16));
 	}
 	if (tb[TCA_SHQ_BANDWIDTH] &&
             RTA_PAYLOAD(tb[TCA_SHQ_BANDWIDTH]) >= sizeof(__u32)) {
@@ -207,7 +208,7 @@ static int shq_print_xstats(struct qdisc_util *qu, FILE *f,
 	st = RTA_DATA(xstats);
 
 	print_float(PRINT_ANY, "prob", "  probability %lg",
-                    (double)st->prob / pow(2, SHQ_SCALE));
+                    (double)st->prob / pow(2, SHQ_SCALE_32));
 
 	fprintf(f, " delay %lluus ", (unsigned long long) st->qdelay);
 
