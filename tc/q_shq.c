@@ -29,7 +29,7 @@
 #include "utils.h"
 #include "tc_util.h"
 
-#define SHQ_SCALE 24
+#define SHQ_SCALE 16
 
 static void explain(void)
 {
