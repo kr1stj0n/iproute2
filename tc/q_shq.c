@@ -43,14 +43,14 @@ static void explain(void)
 static int shq_parse_opt(struct qdisc_util *qu, int argc, char **argv,
                          struct nlmsghdr *n, const char *dev)
 {
-	unsigned int limit     = 1000;          /* default: 1000p */
-	unsigned int interval  = 10000;         /* default 10ms in usecs */
-        double       maxp      = 1.0;
-        double       alpha     = 0.25;
-        unsigned int bandwidth = 12500000;      /* default 100mbit in bps */
-	int          ecn       = 1;             /* enable ecn by default */
-        __u32        maxp_scaled;
-        __u32        alpha_scaled;
+	unsigned int limit    = 1000;          /* default: 1000p */
+	unsigned int interval = 10000;         /* default: 10ms in usecs */
+        double       maxp     = 1.0;
+        double       alpha    = 0.25;
+        unsigned int bw       = 12500000;      /* default: 100mbit in bps */
+	int          ecn      = 1;             /* enable ecn by default */
+        __u32        sc_maxp;
+        __u32        sc_alpha;
 	struct rtattr *tail;
 
 	while (argc > 0) {
@@ -81,12 +81,12 @@ static int shq_parse_opt(struct qdisc_util *qu, int argc, char **argv,
 		} else if (strcmp(*argv, "bandwidth") == 0) {
 			NEXT_ARG();
 			if (strchr(*argv, '%')) {
-				if (get_percent_rate(&bandwidth, *argv, dev)) {
+				if (get_percent_rate(&bw, *argv, dev)) {
 					fprintf(stderr,
                                                 "Illegal \"bandwidth\"\n");
 					return -1;
 				}
-			} else if (get_rate(&bandwidth, *argv)) {
+			} else if (get_rate(&bw, *argv)) {
 				fprintf(stderr, "Illegal \"bandwidth\"\n");
 				return -1;
 			}
@@ -113,22 +113,19 @@ static int shq_parse_opt(struct qdisc_util *qu, int argc, char **argv,
 		addattr_l(n, 1024, TCA_SHQ_INTERVAL, &interval,
                           sizeof(interval));
 	if (maxp) {
-                maxp_scaled = maxp * pow(2, SHQ_SCALE_16);
-                addattr_l(n, 1024, TCA_SHQ_MAXP, &maxp_scaled,
-                          sizeof(maxp_scaled));
+                sc_maxp = maxp * pow(2, SHQ_SCALE_16);
+                addattr_l(n, 1024, TCA_SHQ_MAXP, &sc_maxp, sizeof(sc_maxp));
         }
 	if (alpha) {
-                alpha_scaled = alpha * pow(2, SHQ_SCALE_16);
-		addattr_l(n, 1024, TCA_SHQ_ALPHA, &alpha_scaled,
-                          sizeof(alpha_scaled));
+                sc_alpha = alpha * pow(2, SHQ_SCALE_16);
+		addattr_l(n, 1024, TCA_SHQ_ALPHA, &sc_alpha, sizeof(sc_alpha));
         }
-	if (!bandwidth) {
-		get_rate(&bandwidth, "100Mbit");
+	if (!bw) {
+		get_rate(&bw, "100Mbit");
 		/* fprintf(stderr, "SHQ: set bandwidth to 100Mbit\n"); */
 	}
-        if (bandwidth)
-                addattr_l(n, 1024, TCA_SHQ_BANDWIDTH, &bandwidth,
-                          sizeof(bandwidth));
+        if (bw)
+                addattr_l(n, 1024, TCA_SHQ_BANDWIDTH, &bw, sizeof(bw));
 	if (ecn != -1)
 		addattr_l(n, 1024, TCA_SHQ_ECN, &ecn, sizeof(ecn));
 
@@ -143,7 +140,7 @@ static int shq_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 	unsigned int interval;
 	unsigned int maxp;
 	unsigned int alpha;
-	unsigned int bandwidth;
+	unsigned int bw;
 	unsigned int ecn;
 
 	SPRINT_BUF(b1);
@@ -182,8 +179,8 @@ static int shq_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 	}
 	if (tb[TCA_SHQ_BANDWIDTH] &&
             RTA_PAYLOAD(tb[TCA_SHQ_BANDWIDTH]) >= sizeof(__u32)) {
-		bandwidth = rta_getattr_u32(tb[TCA_SHQ_BANDWIDTH]);
-		print_uint(PRINT_ANY, "bandwidth", "bandwidth %u ", bandwidth);
+		bw = rta_getattr_u32(tb[TCA_SHQ_BANDWIDTH]);
+		print_uint(PRINT_ANY, "bandwidth", "bandwidth %u ", bw);
 	}
 	if (tb[TCA_SHQ_ECN] && RTA_PAYLOAD(tb[TCA_SHQ_ECN]) >= sizeof(__u32)) {
 		ecn = rta_getattr_u32(tb[TCA_SHQ_ECN]);
@@ -227,7 +224,7 @@ static int shq_print_xstats(struct qdisc_util *qu, FILE *f,
 }
 
 struct qdisc_util shq_qdisc_util = {
-	.id             = "shq",
+	.id		= "shq",
 	.parse_qopt	= shq_parse_opt,
 	.print_qopt	= shq_print_opt,
 	.print_xstats	= shq_print_xstats,
